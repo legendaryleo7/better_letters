@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/signs_of_a_better_letter.iml" filepath="$PROJECT_DIR$/signs_of_a_better_letter.iml" />
+      <module fileurl="file://$PROJECT_DIR$/signs_of_a_better_letter_android.iml" filepath="$PROJECT_DIR$/signs_of_a_better_letter_android.iml" />
+    </modules>
+  </component>
+</project>
