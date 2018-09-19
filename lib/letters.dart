@@ -28,7 +28,17 @@ class _LettersState extends State<LettersWidget> {
   var numberOfSides = new TextEditingController();
   var neededLetters = new Map<String, int>();
 
-  void _incrementCounter() {
+  @override
+  void initState() {
+    super.initState();
+
+    // Start listening to changes
+    this.oldMessageText.addListener(_updateNeededLetters);
+    this.newMessageText.addListener(_updateNeededLetters);
+    this.numberOfSides.addListener(_updateNeededLetters);
+  }
+
+  void _updateNeededLetters() {
     setState(() {
       calculateLetter();
     });
@@ -36,49 +46,64 @@ class _LettersState extends State<LettersWidget> {
 
   @override
   Widget build(BuildContext context) {
+    var box = new Container(
+      padding: EdgeInsets.all(20.0),
+      child: new Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          new TextField(
+            controller: this.oldMessageText,
+            decoration: new InputDecoration(hintText: "Old message"),
+          ),
+          new Padding(padding: EdgeInsets.only(top: 25.0)),
+          new TextField(
+            controller: this.newMessageText,
+            decoration: new InputDecoration(hintText: "New message"),
+          ),
+          new Padding(
+            padding: EdgeInsets.only(top: 25.0),
+          ),
+          new TextField(
+              controller: this.numberOfSides,
+              decoration: new InputDecoration(hintText: "Number of sides"),
+              keyboardType: TextInputType.numberWithOptions()),
+        ],
+      ),
+    );
+
     return new Scaffold(
       appBar: new AppBar(
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: new Text(widget.newMessage),
+        title: new Text("Better Letters"),
       ),
       body: ListView(children: <Widget>[
-        new Column(
-          children: <Widget>[
-            new Text('Old message:', style: Theme.of(context).textTheme.body1),
-            new TextField(controller: this.oldMessageText),
-            new Text(
-              'New message:',
-              style: Theme.of(context).textTheme.body2,
-            ),
-            new TextField(controller: this.newMessageText),
-            new Text('Number of sides on this sign:',
-                style: Theme.of(context).textTheme.body2),
-            new TextField(
-                controller: this.numberOfSides,
-                keyboardType: TextInputType.numberWithOptions()),
-          ],
-        ),
+        box,
         new ListView.builder(
           itemCount: this.neededLetters.length,
           itemBuilder: (context, index) {
             var key = this.neededLetters.keys.elementAt(index);
             var value = this.neededLetters[key];
-            if (value > 0) {
-              return ListTile(
+            return ListTile(
               title: Text('$key - $value needed.'),
             );
-            }                   
           },
           shrinkWrap: true,
         ),
       ]),
-      floatingActionButton: new FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Refresh',
-        child: new Icon(Icons.refresh),
-      ),
     );
+  }
+
+  @override
+  void dispose() {
+    this.newMessageText.removeListener(_updateNeededLetters);
+    this.oldMessageText.removeListener(_updateNeededLetters);
+    this.numberOfSides.removeListener(_updateNeededLetters);
+
+    this.newMessageText.dispose();
+    this.oldMessageText.dispose();
+    this.numberOfSides.dispose();
+    super.dispose();
   }
 
   void calculateLetter() {
@@ -92,7 +117,11 @@ class _LettersState extends State<LettersWidget> {
     newMap.forEach((key, value) {
       if (oldMap.containsKey(key)) {
         var existingCount = oldMap[key];
-        this.neededLetters[key] = (newMap[key] - existingCount) * numberOfSides;
+        var neededCount = (newMap[key] - existingCount) * numberOfSides;
+        
+        if (neededCount > 0) {
+          this.neededLetters[key] = neededCount;
+        }
       } else {
         this.neededLetters[key] = newMap[key] * numberOfSides;
       }
