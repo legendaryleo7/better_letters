@@ -5,15 +5,6 @@ class LettersWidget extends StatefulWidget {
   LettersWidget({Key key, this.oldMessage, this.newMessage, this.numberOfSides})
       : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String oldMessage;
   final String newMessage;
   final int numberOfSides;
@@ -27,6 +18,9 @@ class _LettersState extends State<LettersWidget> {
   var newMessageText = new TextEditingController();
   var numberOfSides = new TextEditingController();
   var neededLetters = new Map<String, int>();
+
+  var newMessageFocusNode = new FocusNode();
+  var numberOfSidesFocusNode = new FocusNode();
 
   @override
   void initState() {
@@ -46,28 +40,45 @@ class _LettersState extends State<LettersWidget> {
 
   @override
   Widget build(BuildContext context) {
-    var box = new Container(
+    var oldMessageTextField = new TextField(
+      autofocus: true,
+      controller: this.oldMessageText,
+      decoration: new InputDecoration(hintText: "Old message"),
+      onEditingComplete: () => FocusScope.of(context).requestFocus(this.newMessageFocusNode),
+      textInputAction: TextInputAction.next,
+    );
+
+    var newMessageTextField = new TextField(
+      controller: this.newMessageText,
+      decoration: new InputDecoration(hintText: "New message"),
+      focusNode: this.newMessageFocusNode,
+      onEditingComplete: () => FocusScope.of(context).requestFocus(this.numberOfSidesFocusNode),
+      textInputAction: TextInputAction.next,
+    );
+
+    var numberOfSidesTextField = new TextField(
+        controller: this.numberOfSides,
+        decoration: new InputDecoration(hintText: "Number of sides"),
+        focusNode: this.numberOfSidesFocusNode,
+        keyboardType: TextInputType.number,
+        
+        textInputAction: TextInputAction.done,
+    );
+
+    var padding = new Padding(padding: EdgeInsets.only(top: 25.0));
+
+    var children = <Widget>[
+          oldMessageTextField,
+          padding,
+          newMessageTextField,
+          padding,
+          numberOfSidesTextField];
+
+    var editableFieldsSection = new Container(
       padding: EdgeInsets.all(20.0),
       child: new Column(
         mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          new TextField(
-            controller: this.oldMessageText,
-            decoration: new InputDecoration(hintText: "Old message"),
-          ),
-          new Padding(padding: EdgeInsets.only(top: 25.0)),
-          new TextField(
-            controller: this.newMessageText,
-            decoration: new InputDecoration(hintText: "New message"),
-          ),
-          new Padding(
-            padding: EdgeInsets.only(top: 25.0),
-          ),
-          new TextField(
-              controller: this.numberOfSides,
-              decoration: new InputDecoration(hintText: "Number of sides"),
-              keyboardType: TextInputType.numberWithOptions()),
-        ],
+        children: children
       ),
     );
 
@@ -78,18 +89,27 @@ class _LettersState extends State<LettersWidget> {
         title: new Text("Better Letters"),
       ),
       body: ListView(children: <Widget>[
-        box,
-        new ListView.builder(
-          itemCount: this.neededLetters.length,
-          itemBuilder: (context, index) {
+        editableFieldsSection,
+        new GridView.count(
+          crossAxisCount: 2,
+          mainAxisSpacing: .1,
+          crossAxisSpacing: .1,
+          padding: EdgeInsets.all(15.0),
+          shrinkWrap: true,
+          childAspectRatio: 5.0,
+          children: List.generate(this.neededLetters.length, (index) {
             var key = this.neededLetters.keys.elementAt(index);
             var value = this.neededLetters[key];
-            return ListTile(
-              title: Text('$key - $value needed.'),
+            return new Container(
+              child: new Center(
+                child: Text(
+                  '$key - $value needed.',
+                ),
+              ),
+              /*decoration: new BoxDecoration(color: Colors.blue),*/
             );
-          },
-          shrinkWrap: true,
-        ),
+          }),
+        )
       ]),
     );
   }
@@ -118,7 +138,7 @@ class _LettersState extends State<LettersWidget> {
       if (oldMap.containsKey(key)) {
         var existingCount = oldMap[key];
         var neededCount = (newMap[key] - existingCount) * numberOfSides;
-        
+
         if (neededCount > 0) {
           this.neededLetters[key] = neededCount;
         }
